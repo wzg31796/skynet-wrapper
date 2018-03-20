@@ -48,6 +48,7 @@ jemalloc : $(MALLOC_STATICLIB)
 # protobuf
 
 protobuf :
+	$(shell if [ ! -d "./luaclib" ]; then mkdir "./luaclib"; fi)
 	cd 3rd/pbc && make && cd binding/lua53 && make && ln protobuf.so ../../../../luaclib/protobuf.so
 
 update3rd :
