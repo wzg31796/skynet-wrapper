@@ -17,6 +17,12 @@ LUA_INC ?= 3rd/lua
 $(LUA_STATICLIB) :
 	cd 3rd/lua && $(MAKE) CC='$(CC) -std=gnu99' $(PLAT)
 
+$(LUA_CLIB_PATH) :
+	mkdir $(LUA_CLIB_PATH)
+
+$(CSERVICE_PATH) :
+	mkdir $(CSERVICE_PATH)
+
 # jemalloc 
 
 JEMALLOC_STATICLIB := 3rd/jemalloc/lib/libjemalloc_pic.a
@@ -42,8 +48,7 @@ jemalloc : $(MALLOC_STATICLIB)
 # protobuf
 
 protobuf :
-	cd 3rd/pbc && make && cd binding/lua53 && make
-	ln 3rd/pbc/binding/lua53/protobuf.so luaclib/protobuf.so
+	cd 3rd/pbc && make && cd binding/lua53 && make && ln protobuf.so ../../../../luaclib/protobuf.so
 
 update3rd :
 	rm -rf 3rd/jemalloc && git submodule update --init
@@ -85,12 +90,6 @@ all : \
 $(SKYNET_BUILD_PATH)/skynet : $(foreach v, $(SKYNET_SRC), skynet-src/$(v)) $(LUA_LIB) $(MALLOC_STATICLIB)
 	$(CC) $(CFLAGS) -o $@ $^ -Iskynet-src -I$(JEMALLOC_INC) $(LDFLAGS) $(EXPORT) $(SKYNET_LIBS) $(SKYNET_DEFINES)
 
-$(LUA_CLIB_PATH) :
-	mkdir $(LUA_CLIB_PATH)
-
-$(CSERVICE_PATH) :
-	mkdir $(CSERVICE_PATH)
-
 define CSERVICE_TEMP
   $$(CSERVICE_PATH)/$(1).so : service-src/service_$(1).c | $$(CSERVICE_PATH)
 	$$(CC) $$(CFLAGS) $$(SHARED) $$< -o $$@ -Iskynet-src
@@ -118,7 +117,6 @@ $(LUA_CLIB_PATH)/lpeg.so : 3rd/lpeg/lpcap.c 3rd/lpeg/lpcode.c 3rd/lpeg/lpprint.c
 
 clean :
 	rm -f $(SKYNET_BUILD_PATH)/skynet $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so
-	find . -iname *.o -exec rm -rf \{\} \;
 
 cleanall: clean
 ifneq (,$(wildcard 3rd/jemalloc/Makefile))
@@ -127,3 +125,4 @@ endif
 	cd 3rd/lua && $(MAKE) clean
 	rm -f $(LUA_STATICLIB)
 	find . -iname *.o -exec rm -rf \{\} \;
+	cd 3rd/pbc && $(MAKE) clean && cd binding/lua53 && $(MAKE) clean
